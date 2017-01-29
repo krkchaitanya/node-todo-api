@@ -7,27 +7,31 @@ MongoClient.connect('mongodb://localhost:27017/TodoApp', (err, db) => {
   }
   console.log('Connected to MongoDB server');
 
-  // deleteMany
-  // db.collection('Todos').deleteMany({text: 'Eat lunch'}).then((result) => {
+  // db.collection('Todos').findOneAndUpdate({
+  //   _id: new ObjectID('57bc4b15b3b6a3801d8c47a2')
+  // }, {
+  //   $set: {
+  //     completed: true
+  //   }
+  // }, {
+  //   returnOriginal: false
+  // }).then((result) => {
   //   console.log(result);
   // });
 
-  // deleteOne
-  // db.collection('Todos').deleteOne({text: 'Eat lunch'}).then((result) => {
-  //   console.log(result);
-  // });
-
-  // findOneAndDelete
-  // db.collection('Todos').findOneAndDelete({completed: false}).then((result) => {
-  //   console.log(result);
-  // });
-
-  // db.collection('Users').deleteMany({name: 'Andrew'});
-
-  db.collection('Users').findOneAndDelete({
-    _id: new ObjectID("57ac8d47878a299e5dc21bc8")
-  }).then((results) => {
-    console.log(JSON.stringify(results, undefined, 2));
+  db.collection('Users').findOneAndUpdate({
+    _id: new ObjectID('57abbcf4fd13a094e481cf2c')
+  }, {
+    $set: {
+      name: 'Andrew'
+    },
+    $inc: {
+      age: 1
+    }
+  }, {
+    returnOriginal: false
+  }).then((result) => {
+    console.log(result);
   });
 
   // db.close();
