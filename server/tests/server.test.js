@@ -3,21 +3,12 @@ const expect = require('expect');
 const request = require('supertest');
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
-const todos=[{
-  _id:new ObjectID(),
-  text:"first test todo"
-},{
-  _id:new ObjectID(),
-  text:"second test todo",
-  completed:true,
-  completedAt:333
-}];
+const {populateTodos,todos,users,populateUsers}= require("./seed/seed");
+const {User}=require("./../models/user");
 
-beforeEach((done)=>{
-  Todo.remove({}).then(() => {
-  return Todo.insertMany(todos);
-}).then (()=>done());
-});
+
+beforeEach(populateUsers);
+beforeEach(populateTodos);
 
 describe('POST /todos', () => {
   it('should create a new todo', (done) => {
@@ -154,3 +145,76 @@ describe("PATCH/todos/:id",()=>{
       .end(done);
     });
   });
+
+  describe("GET/users/me",()=>{
+    it("should return user if autheticated",(done)=>{
+    request(app)
+    .get('/users/me')
+    .set('x-auth',users[0].tokens[0].token)
+    .expect(200)
+    .expect((res)=>{
+      expect(res.body._id).toBe(users[0]._id.toHexString());
+      expect(res.body.email).toBe(users[0].email);
+    })
+    .end(done);
+})
+it("should return 401 if not authenticated",(done)=>{
+  request(app)
+  .get('/users/me')
+  .expect(401)
+  .expect((res)=>{
+    expect(res.body).toEqual({});
+  })
+  .end(done);
+})
+  });
+
+
+
+describe("POST/user",()=>{
+it("should create the user",(done)=>{
+  var email="example@example.com";
+  var password="123abc!";
+  request(app)
+  .post('/users')
+  .send({email,password})
+  .expect((res)=>{
+    expect(res.headers["x-auth"]).toExist();
+    expect(res.body.email).toBe(email);
+    expect(res.body._id).toExist();
+    })
+    .end((err)=>{
+      if(err){
+        return done(err);
+      }
+
+      User.findOne({email}).then((user)=>{
+        expect(user).toExist();
+        expect(user.password).toNotBe(password);
+        done()
+      })
+    });
+});
+
+it("should create validation error if rwquest invalid",(done)=>{
+request(app)
+.post('/users')
+.send({
+  email:'and',
+  pass:'123'
+})
+.expect(400)
+.end(done)
+});
+it("should not create the user already exists",(done)=>{
+request(app)
+.post('/users')
+.send({
+  email:users[0].eamil,
+  password:'aseppd'
+})
+.expect(400)
+.end(done)
+});
+
+});
